@@ -70,6 +70,17 @@ func loadConfig(confPath string) (*Config, error) {
 	return &cfg, nil
 }
 
+func getGroupInfo(config *Config, group string) *Group {
+
+	for i, grp := range config.Groups {
+		if grp.Name == group {
+			return &config.Groups[i]
+		}
+	}
+	return nil
+
+}
+
 func initConfig() (*Config, error) {
 
 	// load or create configuration file
@@ -88,37 +99,64 @@ func initConfig() (*Config, error) {
 }
 
 func main() {
-	group, action, arg1, arg2 := parseArgs()
-	conf, err := initConfig()
-	fmt.Println(conf)
+	target_group, action, arg1, arg2 := parseArgs()
+	config, err := initConfig()
 
 	if err != nil {
 		return
 	}
 
 	// Check if user is creating a group or invoking a request
-	if action == "" && group != "" {
+	if action == "" && target_group != "" {
 		// Logic for ping itself
-		fmt.Println("Pinging group", group)
+		group := getGroupInfo(config, target_group)
+		if group == nil {
+			fmt.Println("Nonexistent group")
+		} else {
+			fmt.Println("Pinging group", group)
+		}
 
 	} else if action == "ls" {
 		// Logic for listing items in groups
-		fmt.Println("Listing items in ", group)
+		group := getGroupInfo(config, target_group)
+		if group == nil {
+			fmt.Println("Nonexistent group")
+		} else {
+			fmt.Println("Listing items in", group)
+		}
 	} else if action == "new" {
 		// Logic for creating a new group
-		fmt.Println("Creating", group)
+		fmt.Println("Creating", target_group)
+
 	} else if action == "add" {
 		// Logic for adding an item to a group
-		fmt.Printf("Adding %s - %s into %s \n", arg1, arg2, group)
+		group := getGroupInfo(config, target_group)
+		if group == nil {
+			fmt.Println("Nonexistent group")
+		} else {
+			fmt.Printf("Adding %s - %s into %s \n", arg1, arg2, group)
+		}
+
 	} else if action == "rm" {
 		if arg1 == "" {
 			// Logic for removing a group
-			fmt.Println("Deleting group", group)
+			group := getGroupInfo(config, target_group)
+			if group == nil {
+				fmt.Println("Nonexistent group")
+			} else {
+				fmt.Println("Deleting group", group)
+			}
 		} else {
 			// Logic for removing a item from a group
-			fmt.Printf("Deleting item %s - %s in %s \n", arg1, arg2, group)
+			group := getGroupInfo(config, target_group)
+			if group == nil {
+				fmt.Println("Nonexistent group")
+			} else {
+				fmt.Printf("Deleting item %s in %s \n", arg1, group)
+			}
 		}
-	} else if group == "" {
+
+	} else if target_group == "" {
 		fmt.Println("Usage:")
 	}
 
