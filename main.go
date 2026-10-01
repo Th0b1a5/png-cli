@@ -2,7 +2,6 @@ package main
 
 import (
 	"encoding/json"
-	"flag"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -23,20 +22,32 @@ func getConfigPath() string {
 	return filepath.Join(configDir, "png", "config.json")
 }
 
-func initFlags() (string, string) {
-	var targetGroup string
-	var newGroup string
+func parseArgs() (string, string, string, string) {
+	args := os.Args[1:]
 
-	// extract flags
-	flag.StringVar(&newGroup, "n", "", "Name of new group")
-	flag.StringVar(&newGroup, "new", "", "Name of new group")
-	flag.StringVar(&targetGroup, "g", "", "Group to select to ping")
-	flag.StringVar(&targetGroup, "group", "", "Group to select to ping")
-	flag.Parse()
-	newGroup = strings.TrimSpace(newGroup)
-	targetGroup = strings.TrimSpace(targetGroup)
+	if len(args) < 1 {
+		return "", "", "", ""
+	}
 
-	return newGroup, targetGroup
+	group := ""
+	action := ""
+	arg1 := ""
+	arg2 := ""
+
+	if len(args) > 0 {
+		group = strings.TrimSpace(args[0])
+	}
+	if len(args) > 1 {
+		action = strings.TrimSpace(args[1])
+	}
+	if len(args) > 2 {
+		arg1 = strings.TrimSpace(args[2])
+	}
+	if len(args) > 3 {
+		arg2 = strings.TrimSpace(args[3])
+	}
+
+	return group, action, arg1, arg2
 }
 
 func loadConfig(confPath string) (*Config, error) {
@@ -77,7 +88,7 @@ func initConfig() (*Config, error) {
 }
 
 func main() {
-	newGroup, targetGroup := initFlags()
+	group, action, arg1, arg2 := parseArgs()
 	conf, err := initConfig()
 	fmt.Println(conf)
 
@@ -86,16 +97,29 @@ func main() {
 	}
 
 	// Check if user is creating a group or invoking a request
-	if newGroup != "" {
-		// Logic for new group
-		fmt.Println("Making group", newGroup)
+	if action == "" && group != "" {
+		// Logic for ping itself
+		fmt.Println("Pinging group", group)
 
-	} else if targetGroup != "" {
-		// Locic for ping
-		fmt.Println("Pinging items in", targetGroup)
-	} else {
-		flag.Usage()
-		return
+	} else if action == "ls" {
+		// Logic for listing items in groups
+		fmt.Println("Listing items in ", group)
+	} else if action == "new" {
+		// Logic for creating a new group
+		fmt.Println("Creating", group)
+	} else if action == "add" {
+		// Logic for adding an item to a group
+		fmt.Printf("Adding %s - %s into %s \n", arg1, arg2, group)
+	} else if action == "rm" {
+		if arg1 == "" {
+			// Logic for removing a group
+			fmt.Println("Deleting group", group)
+		} else {
+			// Logic for removing a item from a group
+			fmt.Printf("Deleting item %s - %s in %s \n", arg1, arg2, group)
+		}
+	} else if group == "" {
+		fmt.Println("Usage:")
 	}
 
 }
