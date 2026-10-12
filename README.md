@@ -8,13 +8,17 @@
 
 | Command | Action |
 | :--- | :--- |
-| `png` | List all saved groups |
-| `png <group>` | Ping all endpoints in `<group>` |
-| `png <group> ls` | List endpoints (name, URL, index) in `<group>` |
-| `png <group> new` | Create a new `<group>` |
-| `png <group> add <name> <url>` | Add an endpoint to `<group>` |
-| `png <group> rm` | Delete `<group>` (with confirmation) |
-| `png <group> rm <name>` | Delete endpoint `<name>` from `<group>` |
+| `png` | Show help and usage |
+| `png <group>` | Ping all URLs in `<group>` (fast shortcut) |
+| `png ping <group>` | Ping all URLs in `<group>` |
+| `png ls` | List all saved groups |
+| `png ls <group>` | List URLs in `<group>` |
+| `png new <group>` | Create a new `<group>` |
+| `png add <group> <url>` | Add a URL to `<group>` |
+| `png rm <group>` | Delete `<group>` (with confirmation) |
+| `png rm <group> <url>` | Delete `<url>` from `<group>` |
+
+> **Reserved Words**: `ls`, `new`, `add`, `rm`, `ping`, and `help` cannot be used as group names.
 
 ---
 
@@ -27,15 +31,9 @@ Config file is stored at `~/.config/png/config.json` (via `os.UserConfigDir()`):
   "groups": [
     {
       "name": "local",
-      "endpoints": [
-        {
-          "name": "products",
-          "url": "http://localhost:8080/products"
-        },
-        {
-          "name": "docs",
-          "url": "http://localhost:8000/docs"
-        }
+      "urls": [
+        "http://localhost:8080/products",
+        "http://localhost:8000/docs"
       ]
     }
   ]
@@ -48,23 +46,23 @@ Config file is stored at `~/.config/png/config.json` (via `os.UserConfigDir()`):
 
 ### 1. Config & Data Structures
 - [x] Create config directory and default config file (`~/.config/png/config.json`)
-- [x] Load and unmarshal config from disk into Go structs
-- [ ] Add `Endpoint` struct (`name`, `url`) and update `Group` to use `[]Endpoint`
+- [x] Load and unmarshal config from disk into Go structs (`Config`, `Group` with `URLs []string`)
 - [ ] Implement `saveConfig(path, cfg)` to write indented JSON back to disk
 
 ### 2. Command Dispatching (CLI Router)
-- [ ] Migrate from `flag` package to positional `os.Args` parsing
-- [ ] Implement `png` (list all groups)
-- [ ] Implement `png <group> new`
-- [ ] Implement `png <group> ls`
-- [ ] Implement `png <group> add <name> <url>`
-- [ ] Implement `png <group> rm` (group deletion with confirmation)
-- [ ] Implement `png <group> rm <name>` (endpoint deletion)
+- [x] Migrate from `flag` package to positional `os.Args` parsing
+- [ ] Update router to Action-First syntax (`png <action> [group] [url]`)
+- [ ] Implement `png ls` and `png ls <group>`
+- [ ] Implement `png new <group>`
+- [ ] Implement `png add <group> <url>`
+- [ ] Implement `png rm <group>` and `png rm <group> <url>`
+- [ ] Implement `png <group>` fallback for instant pinging
 
-### 3. HTTP Pinging Engine
+### 3. HTTP Pinging Engine & Terminal UI
 - [ ] Ping URLs concurrently or sequentially using `net/http`
 - [ ] Measure request latency using `time.Since`
-- [ ] Formatted, colorized terminal output (Status Code, Latency, Endpoint Name)
+- [ ] Fixed-width formatting (`%-30s`) so latency columns line up
+- [ ] Colorized terminal output (Green for OK, Yellow for in-flight, Red for unreachable)
 
 ### 4. Distribution
 - [ ] Build standalone static binary
