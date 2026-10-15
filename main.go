@@ -102,7 +102,7 @@ func getGroupInfo(config *Config, group string) *Group {
 // Yes absolutely stolen from Stack Overflow
 func isInt(s string) bool {
 	for _, c := range s {
-		if !unicode.IsDigit(c) {
+		if !unicode.IsDigit(c) || string(c) == "." {
 			return false
 		}
 	}
@@ -160,7 +160,7 @@ func main() {
 
 	} else if action == "new" {
 		// First check if the group name is a known command to prevent delete conflicts later
-		commands := []string{"ping", "ls", "new", "add", "rm"}
+		commands := []string{"ping", "ls", "new", "add", "rm", ""}
 		for _, cmd := range commands {
 			if cmd == target_group {
 				fmt.Println("Cant use name of", target_group, "because its reseved for commands")
@@ -193,6 +193,10 @@ func main() {
 		}
 
 	} else if action == "add" {
+		if arg1 == "" {
+			fmt.Println("Missing URL to add to group")
+			return
+		}
 		// Check if its a IP or a URL, this is to prevent deleting conflicts later
 		if isInt(arg1) == true {
 			fmt.Println("New item in a group cant be a plain number")
@@ -224,9 +228,15 @@ func main() {
 			// Allows deleting a group by specifying its order number, no need to search for group in config
 			if isInt(target_group) == true {
 				i, _ := strconv.Atoi(target_group)
+				if len(config.Groups) == 0 {
+					fmt.Println("Configuration file has no groups!")
+					return
+				}
 				if len(config.Groups) < i {
 					fmt.Println("Index", i, "is out of range, maximum is", len(config.Groups))
+					return
 				}
+				fmt.Println(len(config.Groups), " ", i)
 				config.Groups = slices.Delete(config.Groups, i, i+1)
 
 				// Write the final config
@@ -261,7 +271,6 @@ func main() {
 				}
 			}
 		} else {
-
 			// Logic for removing a item from a group
 			group := getGroupInfo(config, target_group)
 			if group == nil {
@@ -272,8 +281,13 @@ func main() {
 				// Allows deleting a URL by specifying its order number, no need to search for URL in Group
 				if isInt(arg1) == true {
 					i, _ := strconv.Atoi(arg1)
-					if len(group.URLs) > i {
+					if len(config.Groups) == 0 {
+						fmt.Println("Group has no URLs!")
+						return
+					}
+					if len(group.URLs) < i {
 						fmt.Println("Index", i, "is out of range, maximum is", len(group.URLs))
+						return
 					}
 					group.URLs = slices.Delete(group.URLs, i, i+1)
 
