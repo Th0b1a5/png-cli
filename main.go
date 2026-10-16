@@ -2,12 +2,15 @@ package main
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
+	"net/http"
 	"os"
 	"path/filepath"
 	"slices"
 	"strconv"
 	"strings"
+	"time"
 	"unicode"
 )
 
@@ -109,6 +112,34 @@ func isInt(s string) bool {
 	return true
 }
 
+func pingURL(url string) error {
+	// Figure out the type of endpoint to ping, move to a seperate function later
+	if !strings.HasPrefix(url, "http://") && !strings.HasPrefix(url, "https://") {
+		fmt.Println(url, "isnt a rest endpoint!")
+		return errors.New("Not REST")
+	}
+	client := http.Client{Timeout: 3 * time.Second}
+	start := time.Now()
+
+	// Send request
+	response, err := client.Get(url)
+
+	if err != nil {
+		fmt.Println(url, "-", "Unreachable")
+		return err
+	}
+	// Wait and measure
+	if response.StatusCode == 200 {
+		fmt.Println(url, "-", time.Since(start))
+		response.Body.Close()
+		return nil
+	} else {
+		fmt.Println(url, "-", "Offline")
+		return nil
+	}
+
+}
+
 func initConfig() (*Config, error) {
 
 	// load or create configuration file
@@ -143,6 +174,9 @@ func main() {
 			fmt.Println("Nonexistent group")
 		} else {
 			fmt.Println("Pinging group", group.Name)
+			for _, url := range group.URLs {
+				pingURL(url)
+			}
 		}
 
 	} else if action == "ls" {
