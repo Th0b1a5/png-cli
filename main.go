@@ -10,8 +10,16 @@ import (
 	"slices"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 	"unicode"
+)
+
+const (
+	colorReset  = "\033[0m"
+	colorRed    = "\033[31m"
+	colorGreen  = "\033[32m"
+	colorYellow = "\033[33m"
 )
 
 type Group struct {
@@ -125,16 +133,16 @@ func pingURL(url string) error {
 	response, err := client.Get(url)
 
 	if err != nil {
-		fmt.Println(url, "-", "Unreachable")
+		fmt.Println(colorRed, url, "-", "Unreachable", colorReset)
 		return err
 	}
 	// Wait and measure
 	if response.StatusCode == 200 {
-		fmt.Println(url, "-", time.Since(start))
+		fmt.Println(colorGreen, url, "-", time.Since(start), colorReset)
 		response.Body.Close()
 		return nil
 	} else {
-		fmt.Println(url, "-", "Offline")
+		fmt.Println(colorRed, url, "- Error:", response.StatusCode, colorReset)
 		return nil
 	}
 
@@ -173,10 +181,17 @@ func main() {
 		if group == nil {
 			fmt.Println("Nonexistent group")
 		} else {
+			var wg sync.WaitGroup
 			fmt.Println("Pinging group", group.Name)
 			for _, url := range group.URLs {
-				pingURL(url)
+				wg.Add(1)
+				go func(u string) {
+					defer wg.Done()
+					pingURL(u)
+				}(url)
+
 			}
+			wg.Wait()
 		}
 
 	} else if action == "ls" {
@@ -329,7 +344,7 @@ func main() {
 					err := writeConfig(config)
 
 					if err == nil {
-						fmt.Println("Successfully removed target group")
+						fmt.Println("Successfully removed URL")
 					} else {
 						fmt.Println("Error writing to configuration file")
 					}
