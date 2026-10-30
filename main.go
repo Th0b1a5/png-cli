@@ -15,6 +15,8 @@ import (
 	"unicode"
 )
 
+var version = "dev"
+
 const (
 	colorReset  = "\033[0m"
 	colorRed    = "\033[31m"
@@ -166,7 +168,13 @@ func initConfig() (*Config, error) {
 }
 
 func main() {
+	commands := []string{"version", "ping", "ls", "new", "add", "rm", ""}
+
 	action, target_group, arg1, _ := parseArgs()
+	if action == "version" {
+		fmt.Println("png version", version)
+		return
+	}
 	config, err := initConfig()
 
 	if err != nil {
@@ -209,7 +217,7 @@ func main() {
 
 	} else if action == "new" {
 		// First check if the group name is a known command to prevent delete conflicts later
-		commands := []string{"ping", "ls", "new", "add", "rm", ""}
+
 		for _, cmd := range commands {
 			if cmd == target_group {
 				fmt.Println("Cant use name of", target_group, "because its reseved for commands")

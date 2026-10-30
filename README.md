@@ -18,7 +18,7 @@
 | `png rm <group>` | Delete `<group>` (with confirmation) |
 | `png rm <group> <url>` | Delete `<url>` from `<group>` |
 
-> **Reserved Words**: `ls`, `new`, `add`, `rm`, `ping`, and `help` cannot be used as group names.
+> **Reserved Words**: `ls`, `new`, `add`, `rm`, `ping`, `version`, and `help` cannot be used as group names.
 
 ---
 
